@@ -2,23 +2,21 @@
 package com.timgroup.statsd;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import jnr.unixsocket.UnixDatagramChannel;
-import jnr.unixsocket.UnixSocketAddress;
-import java.nio.charset.StandardCharsets;
 
 
 class DummyStatsDServer {
-    private final List<String> messagesReceived = new ArrayList<String>();
+    private final List<String> messagesReceived = new ArrayList<>();
     private AtomicInteger packetsReceived = new AtomicInteger(0);
 
     protected final DatagramChannel server;
@@ -30,9 +28,18 @@ class DummyStatsDServer {
         this.listen();
     }
 
-    public DummyStatsDServer(String socketPath) throws IOException {
-        server = UnixDatagramChannel.open();
-        server.bind(new UnixSocketAddress(socketPath));
+    public DummyStatsDServer(String socketPath) throws IOException, ReflectiveOperationException {
+
+        Class<?> unixDatagramChannelClazz = Class.forName("jnr.unixsocket.UnixDatagramChannel");
+        Method method = unixDatagramChannelClazz.getMethod("open");
+        Object unixDatagramChannel = method.invoke(null);
+        server = (DatagramChannel) unixDatagramChannel;
+
+        Class<?> clazz = Class.forName("jnr.unixsocket.UnixSocketAddress");
+        Constructor<?> ctor = clazz.getConstructor(String.class);
+        Object socketAddress = ctor.newInstance(new Object[]{socketPath});
+        server.bind((SocketAddress) socketAddress);
+
         this.listen();
     }
 
@@ -79,7 +86,7 @@ class DummyStatsDServer {
     }
 
     public List<String> messagesReceived() {
-        return new ArrayList<String>(messagesReceived);
+        return new ArrayList<>(messagesReceived);
     }
 
     public int packetsReceived() {

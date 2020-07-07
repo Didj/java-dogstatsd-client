@@ -1,12 +1,7 @@
 package com.timgroup.statsd;
 
-import com.timgroup.statsd.Message;
-
-import jnr.unixsocket.UnixDatagramChannel;
-import jnr.unixsocket.UnixSocketAddress;
-import jnr.unixsocket.UnixSocketOptions;
-
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -262,8 +257,13 @@ public class NonBlockingStatsDClient implements StatsDClient {
         String transportType = "";
         try {
             final SocketAddress address = addressLookup.call();
-            if (address instanceof UnixSocketAddress) {
-                clientChannel = UnixDatagramChannel.open();
+            if ("jnr.unixsocket.UnixSocketAddress".equals(address.getClass().getName())) {
+
+                Class<?> clazz = Class.forName("jnr.unixsocket.UnixDatagramChannel");
+                Method method = clazz.getMethod("open");
+                Object object = method.invoke(null);
+
+                clientChannel = (DatagramChannel) object;
                 // Set send timeout, to handle the case where the transmission buffer is full
                 // If no timeout is set, the send becomes blocking
                 if (timeout > 0) {
@@ -292,8 +292,13 @@ public class NonBlockingStatsDClient implements StatsDClient {
             if (addressLookup != telemetryAddressLookup) {
 
                 final SocketAddress telemetryAddress = telemetryAddressLookup.call();
-                if (telemetryAddress instanceof UnixSocketAddress) {
-                    telemetryClientChannel = UnixDatagramChannel.open();
+                if ("jnr.unixsocket.UnixSocketAddress".equals(telemetryAddress.getClass().getName())) {
+
+                    Class<?> clazz = Class.forName("jnr.unixsocket.UnixDatagramChannel");
+                    Method method = clazz.getMethod("open");
+                    Object object = method.invoke(null);
+
+                    telemetryClientChannel = (DatagramChannel) object;
                     // Set send timeout, to handle the case where the transmission buffer is full
                     // If no timeout is set, the send becomes blocking
                     if (timeout > 0) {

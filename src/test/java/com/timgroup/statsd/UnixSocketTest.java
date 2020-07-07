@@ -1,19 +1,20 @@
 package com.timgroup.statsd;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.nullValue;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import java.io.IOException;
-import java.io.File;
-import java.nio.file.Files;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
 
 public class UnixSocketTest implements StatsDClientErrorHandler {
     private static File tmpFolder;
@@ -24,6 +25,7 @@ public class UnixSocketTest implements StatsDClientErrorHandler {
 
     private static boolean linux = true;
 
+    @Override
     public synchronized void handle(Exception exception) {
         lastException = exception;
     }
@@ -39,7 +41,7 @@ public class UnixSocketTest implements StatsDClientErrorHandler {
     }
 
     @Before
-    public void start() throws IOException {
+    public void start() throws IOException, ReflectiveOperationException {
         tmpFolder = Files.createTempDirectory(System.getProperty("java-dsd-test")).toFile();
         tmpFolder.deleteOnExit();
         socketFile = new File(tmpFolder, "socket.sock");

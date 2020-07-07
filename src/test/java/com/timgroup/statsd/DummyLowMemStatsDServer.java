@@ -2,17 +2,10 @@
 package com.timgroup.statsd;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.ArrayList;
-import java.util.List;
-import jnr.unixsocket.UnixDatagramChannel;
-import jnr.unixsocket.UnixSocketAddress;
 import java.nio.charset.StandardCharsets;
-
+import java.util.concurrent.atomic.AtomicInteger;
 
 class DummyLowMemStatsDServer extends DummyStatsDServer {
     private final AtomicInteger packetCount = new AtomicInteger(0);
@@ -22,7 +15,7 @@ class DummyLowMemStatsDServer extends DummyStatsDServer {
         super(port);
     }
 
-    public DummyLowMemStatsDServer(String socketPath) throws IOException {
+    public DummyLowMemStatsDServer(String socketPath) throws IOException, ReflectiveOperationException {
         super(socketPath);
     }
 
