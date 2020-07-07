@@ -1,7 +1,5 @@
 package com.timgroup.statsd;
 
-import com.timgroup.statsd.Message;
-
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -9,17 +7,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class StatsDProcessor implements Runnable {
     protected static final Charset MESSAGE_CHARSET = Charset.forName("UTF-8");
@@ -46,6 +38,7 @@ public abstract class StatsDProcessor implements Runnable {
                 .onMalformedInput(CodingErrorAction.REPLACE)
                 .onUnmappableCharacter(CodingErrorAction.REPLACE);
 
+        @Override
         public abstract void run();
 
         protected void writeBuilderToSendBuffer(ByteBuffer sendBuffer) {
@@ -75,7 +68,7 @@ public abstract class StatsDProcessor implements Runnable {
 
         this.executor = Executors.newFixedThreadPool(workers);
         this.bufferPool = new BufferPool(poolSize, maxPacketSizeBytes, true);
-        this.outboundQueue = new ArrayBlockingQueue<ByteBuffer>(poolSize);
+        this.outboundQueue = new ArrayBlockingQueue<>(poolSize);
         this.endSignal = new CountDownLatch(workers);
     }
 
@@ -88,7 +81,7 @@ public abstract class StatsDProcessor implements Runnable {
 
         this.executor = Executors.newFixedThreadPool(this.workers);
         this.bufferPool = new BufferPool(processor.bufferPool);
-        this.outboundQueue = new ArrayBlockingQueue<ByteBuffer>(this.bufferPool.getSize());
+        this.outboundQueue = new ArrayBlockingQueue<>(this.bufferPool.getSize());
         this.endSignal = new CountDownLatch(this.workers);
     }
 
@@ -120,6 +113,7 @@ public abstract class StatsDProcessor implements Runnable {
             try {
                 endSignal.await();
                 done = true;
+                executor.shutdown();
             } catch (final InterruptedException e) {
                 // NOTHING
             }
